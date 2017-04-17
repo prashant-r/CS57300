@@ -1,0 +1,4 @@
+USING 4 LATE DAYS
+
+There are two flags in the main function. One is to turn on single analysis for the currently executing input train, test set, the other flag is analysAll which does a complete analysis on the entire yelp data.
+I've turned both off for now, feel free to turn them on.
