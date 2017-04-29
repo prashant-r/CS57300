@@ -451,7 +451,7 @@ def main():
                         except:
                             pass
                     pca = PCA()
-                    pca.plot_in_2d(X, prediction[0], title="%s %s" % ("B.4 K =" + str(k) +  "-Means Clustering-", filename ))
+                    pca.plot_in_2d(X, prediction[0], title="%s %s" % ("B.4 K =" ,k, "-Means Clustering-", filename ))
                     wc_ssd[f, indk] =  prediction[1]
                     sili_sc[f, indk] = prediction[2]
                     nmi_sc[f, indk] = prediction[3]
