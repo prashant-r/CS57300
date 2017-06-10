@@ -48,41 +48,26 @@ def euclidean_distance(x1, x2):
 
 
 class PCA():
-    """A method for doing dimensionality reduction by transforming the feature
-    space to a lower dimensionality, removing correlation between features and
-    maximizing the variance along each feature axis. This class is also used throughout
-    the project to plot data.
-    """
-    def __init__(self): pass
-
-    # Fit the dataset to the number of principal components
-    # specified in the constructor and return the transformed dataset
+    def __init__(self):
+        pass
     def transform(self, X, n_components):
         covariance = calculate_covariance_matrix(X)
 
-        # Get the eigenvalues and eigenvectors.
-        # (eigenvector[:,0] corresponds to eigenvalue[0])
         eigenvalues, eigenvectors = np.linalg.eig(covariance)
 
-        # Sort the eigenvalues and corresponding eigenvectors from largest
-        # to smallest eigenvalue and select the first n_components
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx][:n_components]
         eigenvectors = np.atleast_1d(eigenvectors[:, idx])[:, :n_components]
-
-        # Project the data onto principal components
         X_transformed = X.dot(eigenvectors)
 
         return X_transformed
 
     def get_eigenvectors(self, X, n_components):
         covariance = calculate_covariance_matrix(X)
-
-        # Get the eigenvalues and eigenvectors.
-        # (eigenvector[:,0] corresponds to eigenvalue[0])
         eigenvalues, eigenvectors = np.linalg.eig(covariance)
-
-        return eigenvectors;
+        idx = eigenvalues.argsort()[::-1]
+        eigenvectors = np.atleast_1d(eigenvectors[:, idx])[:, :n_components]
+        return eigenvectors.T;
 
     def get_color_map(self, N):
         color_norm  = colors.Normalize(vmin=0, vmax=N-1)
@@ -91,7 +76,6 @@ class PCA():
             return scalar_map.to_rgba(index)
         return map_index_to_rgb_color
 
-    # Plot the dataset X and the corresponding labels y in 2D using PCA.
     def plot_in_2d(self, X, y=None, title=None, accuracy=None, legend_labels=None):
         X_transformed = self.transform(X, n_components=2)
         x1 = X_transformed[:, 0]
@@ -99,12 +83,9 @@ class PCA():
         class_distr = []
 
         y = np.array(y).astype(int)
-
-        # Color map
         cmap = plt.get_cmap('viridis')
         colors = [cmap(i) for i in np.linspace(0, 1, len(np.unique(y)))]
 
-        # Plot the different class distributions
         for i, l in enumerate(np.unique(y)):
             _x1 = x1[y == l]
             _x2 = x2[y == l]
@@ -222,8 +203,8 @@ class KMeans:
         return float(b - a) / max(a, b) if max(a, b) > 0 else 0.0
 
     def _get_nmi_score(self, U, V):
-        U.astype(int)
-        V.astype(int)
+        U =  U.astype(int)
+        V = V.astype(int)
         exp = U.tolist();
         act = V.tolist();
         expected_indices = Index()
@@ -366,8 +347,6 @@ def main():
                             pass
                     wc_ssd[f, indk] =  prediction[1]
                     sili_sc[f, indk] = prediction[2]
-                    #pca = PCA()
-                    #pca.plot_in_2d(X, prediction[0], title="%s %s" % ("B.4 K=" + str(k) + "-Means Clustering-", filename ))
             figDesc = "B1. WC_SSD vs K.png"
             import matplotlib.pyplot as plt
             plt.ioff()
@@ -459,13 +438,9 @@ def main():
                 X = dataset[:, 2:]
                 y = dataset[:, 1]
                 for indk, k in enumerate(K[f]):
-                    while True:
-                        try:
-                            kmeans = KMeans(k=k,max_iterations= 50)
-                            prediction = kmeans.predict(X, y)
-                            break;
-                        except:
-                            pass
+                    kmeans = KMeans(k=k,max_iterations= 50)
+                    prediction = kmeans.predict(X, y)
+                    ind = prediction[0]
                     wc_ssd[f, indk] =  prediction[1]
                     sili_sc[f, indk] = prediction[2]
                     nmi_sc[f, indk] = prediction[3]
@@ -551,8 +526,24 @@ def main():
             plt.savefig(figDesc)
 
         elif analysis == "C5":
-            None
+            K = [32,16, 16]
+            linkages = ['single', 'complete', 'average']
+            dataset = genfromtxt('digits-embedding.csv', delimiter=',')
+            X = zeros((100, 2))
+            y = zeros(100)
+            nmi_result = zeros((len(linkages), 10))
+            subsets_X, subsets_Y = get_random_subsets(dataset, 10, 10);
 
+            for _m, m in enumerate(linkages):
+                agglomerative_clustering = linkage(subsets_X, method=m)
+                for s in range(10):
+                    kmeans = KMeans();
+                    get_cluster_indices = fcluster(agglomerative_clustering, K[_m], criterion='maxclust')
+                    get_cluster_indices = normalize_labels(get_cluster_indices)
+                    centroids = array([mean(subsets_X[get_cluster_indices == n], axis=0) for n in range(K[_m])])
+                    nmi_result[_m, s] = kmeans._get_nmi_score(normalize_labels(subsets_Y), get_cluster_indices)
+
+            print(mean(nmi_result, axis=1))
         else:
             print('usage: python hw5.py InsertAnalysisId')
 
